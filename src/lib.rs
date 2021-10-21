@@ -13,7 +13,7 @@ use groups::GroupElement;
 use rand::Rng;
 use std::ops::{Add, Mul, Neg, Sub};
 
-#[derive(Copy, Clone, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+#[derive(Copy, Clone, PartialEq, Eq, BorshSerialize, BorshDeserialize, Debug)]
 #[repr(C)]
 pub struct Fr(fields::Fr);
 
@@ -99,7 +99,7 @@ pub trait Group:
     fn normalize(&mut self);
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+#[derive(Copy, Clone, PartialEq, Eq, BorshSerialize, BorshDeserialize, Debug)]
 #[repr(C)]
 pub struct G1(groups::G1);
 
@@ -158,7 +158,7 @@ impl Mul<Fr> for G1 {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
+#[derive(Copy, Clone, PartialEq, Eq, BorshSerialize, BorshDeserialize, Debug)]
 #[repr(C)]
 pub struct G2(groups::G2);
 
