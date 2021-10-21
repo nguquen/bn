@@ -319,6 +319,7 @@ impl FieldElement for Fq12 {
 impl Mul for Fq12 {
     type Output = Fq12;
 
+    #[inline(always)]
     fn mul(self, other: Fq12) -> Fq12 {
         let aa = self.c0 * other.c0;
         let bb = self.c1 * other.c1;
@@ -333,6 +334,7 @@ impl Mul for Fq12 {
 impl Sub for Fq12 {
     type Output = Fq12;
 
+    #[inline(always)]
     fn sub(self, other: Fq12) -> Fq12 {
         Fq12 {
             c0: self.c0 - other.c0,
@@ -344,6 +346,7 @@ impl Sub for Fq12 {
 impl Add for Fq12 {
     type Output = Fq12;
 
+    #[inline(always)]
     fn add(self, other: Fq12) -> Fq12 {
         Fq12 {
             c0: self.c0 + other.c0,
@@ -355,6 +358,7 @@ impl Add for Fq12 {
 impl Neg for Fq12 {
     type Output = Fq12;
 
+    #[inline(always)]
     fn neg(self) -> Fq12 {
         Fq12 {
             c0: -self.c0,
