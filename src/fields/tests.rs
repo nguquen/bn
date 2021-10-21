@@ -1,4 +1,5 @@
-use rand::{Rng,SeedableRng,StdRng};
+use rand::{prelude::StdRng, Rng, SeedableRng};
+
 use super::FieldElement;
 
 fn can_invert<F: FieldElement>() {
@@ -27,10 +28,7 @@ fn rand_element_eval<F: FieldElement, R: Rng>(rng: &mut R) {
         let c = F::random(rng);
         let d = F::random(rng);
 
-        assert_eq!(
-            (a + b) * (c + d),
-            (a * c) + (b * c) + (a * d) + (b * d)
-        );
+        assert_eq!((a + b) * (c + d), (a * c) + (b * c) + (a * d) + (b * d));
     }
 }
 
@@ -117,8 +115,7 @@ pub fn field_trials<F: FieldElement>() {
     assert_eq!(-F::one() + F::one(), F::zero());
     assert_eq!(F::zero() - F::zero(), F::zero());
 
-    let seed: [usize; 4] = [103245, 191922, 1293, 192103];
-    let mut rng = StdRng::from_seed(&seed);
+    let mut rng = StdRng::from_entropy();
 
     rand_element_squaring::<F, StdRng>(&mut rng);
     rand_element_addition_and_negation::<F, StdRng>(&mut rng);
