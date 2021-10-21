@@ -1,4 +1,5 @@
 use arith::U256;
+use borsh::{BorshDeserialize, BorshSerialize};
 use fields::{const_fq, fq2_nonresidue, FieldElement, Fq, Fq12, Fq2, Fr};
 use rand::Rng;
 use std::fmt;
@@ -24,7 +25,7 @@ pub trait GroupElement:
 }
 
 pub trait GroupParams: Sized {
-    type Base: FieldElement;
+    type Base: FieldElement + BorshSerialize + BorshDeserialize;
 
     fn name() -> &'static str;
     fn one() -> G<Self>;
@@ -137,6 +138,78 @@ impl<P: GroupParams> AffineG<P> {
             x: self.x,
             y: self.y,
             z: P::Base::one(),
+        }
+    }
+}
+
+impl<P: GroupParams> BorshSerialize for G<P> {
+    fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
+        if self.is_zero() {
+            let l: u8 = 0;
+            l.serialize(writer)?;
+        } else {
+            let l: u8 = 4;
+            l.serialize(writer)?;
+            self.to_affine().unwrap().serialize(writer)?;
+        }
+
+        Ok(())
+    }
+}
+
+impl<P: GroupParams> BorshSerialize for AffineG<P> {
+    fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
+        self.x.serialize(writer)?;
+        self.y.serialize(writer)?;
+
+        Ok(())
+    }
+}
+
+impl<P: GroupParams> BorshDeserialize for G<P> {
+    fn deserialize(buf: &mut &[u8]) -> std::io::Result<Self> {
+        let l = u8::deserialize(buf)?;
+        if l == 0 {
+            Ok(G::zero())
+        } else if l == 4 {
+            Ok(AffineG::deserialize(buf)?.to_jacobian())
+        } else {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "invalid leading byte for uncompressed group element",
+            ))
+        }
+    }
+}
+
+impl<P: GroupParams> BorshDeserialize for AffineG<P> {
+    fn deserialize(buf: &mut &[u8]) -> std::io::Result<Self> {
+        let x = P::Base::deserialize(buf)?;
+        let y = P::Base::deserialize(buf)?;
+
+        // y^2 = x^3 + b
+        if y.squared() == (x.squared() * x) + P::coeff_b() {
+            if P::check_order() {
+                let p: G<P> = G {
+                    x,
+                    y,
+                    z: P::Base::one(),
+                };
+
+                if (p * (-Fr::one())) + p != G::zero() {
+                    return Err(std::io::Error::new(
+                        std::io::ErrorKind::Other,
+                        "point is not in the subgroup",
+                    ));
+                }
+            }
+
+            Ok(AffineG { x, y })
+        } else {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "point is not on the curve",
+            ))
         }
     }
 }

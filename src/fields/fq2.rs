@@ -1,6 +1,9 @@
+use borsh::{BorshDeserialize, BorshSerialize};
 use fields::{const_fq, FieldElement, Fq};
 use rand::Rng;
 use std::ops::{Add, Mul, Neg, Sub};
+
+use crate::arith::{U256, U512};
 
 #[inline]
 fn fq_non_residue() -> Fq {
@@ -37,6 +40,28 @@ pub fn fq2_nonresidue() -> Fq2 {
 pub struct Fq2 {
     c0: Fq,
     c1: Fq,
+}
+
+impl BorshSerialize for Fq2 {
+    fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
+        let c0: U256 = self.c0.into();
+        let c1: U256 = self.c1.into();
+
+        U512::from(&c1, &c0, &Fq::modulus()).serialize(writer)?;
+        Ok(())
+    }
+}
+
+impl BorshDeserialize for Fq2 {
+    fn deserialize(buf: &mut &[u8]) -> std::io::Result<Self> {
+        let combined = U512::deserialize(buf)?;
+
+        let (c1, c0) = combined.divrem(&Fq::modulus());
+        Ok(Fq2::new(
+            Fq::new(c0).unwrap(),
+            Fq::new(c1.unwrap()).unwrap(),
+        ))
+    }
 }
 
 impl Fq2 {

@@ -37,6 +37,7 @@ macro_rules! field_impl {
         }
 
         impl $name {
+            #[allow(dead_code)]
             pub fn from_str(s: &str) -> Option<Self> {
                 let ints: Vec<_> = {
                     let mut acc = Self::zero();
@@ -76,11 +77,13 @@ macro_rules! field_impl {
                 }
             }
 
+            #[allow(dead_code)]
             pub fn interpret(buf: &[u8; 64]) -> Self {
                 $name::new(U512::interpret(buf).divrem(&U256($modulus)).1).unwrap()
             }
 
             /// Returns the modulus
+            #[allow(dead_code)]
             #[inline]
             pub fn modulus() -> U256 {
                 U256($modulus)

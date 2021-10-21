@@ -6,13 +6,14 @@ mod arith;
 mod fields;
 mod groups;
 
+use borsh::{BorshDeserialize, BorshSerialize};
 use fields::FieldElement;
 use groups::GroupElement;
 
 use rand::Rng;
 use std::ops::{Add, Mul, Neg, Sub};
 
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
 #[repr(C)]
 pub struct Fr(fields::Fr);
 
@@ -76,7 +77,9 @@ impl Mul for Fr {
 }
 
 pub trait Group:
-    'static
+    BorshSerialize
+    + BorshDeserialize
+    + 'static
     + Send
     + Sync
     + Copy
@@ -96,7 +99,7 @@ pub trait Group:
     fn normalize(&mut self);
 }
 
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
 #[repr(C)]
 pub struct G1(groups::G1);
 
@@ -155,7 +158,7 @@ impl Mul<Fr> for G1 {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq, BorshSerialize, BorshDeserialize)]
 #[repr(C)]
 pub struct G2(groups::G2);
 
