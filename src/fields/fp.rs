@@ -1,4 +1,5 @@
 use super::FieldElement;
+use borsh::{BorshDeserialize, BorshSerialize};
 use rand::Rng;
 use std::ops::{Add, Mul, Neg, Sub};
 
@@ -19,8 +20,23 @@ macro_rules! field_impl {
             }
         }
 
+        impl BorshSerialize for $name {
+            fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
+                let normalized = U256::from(*self);
+                normalized.serialize(writer)?;
+
+                Ok(())
+            }
+        }
+
+        impl BorshDeserialize for $name {
+            fn deserialize(buf: &mut &[u8]) -> std::io::Result<Self> {
+                let a = U256::deserialize(buf)?;
+                Ok($name::new(a).unwrap())
+            }
+        }
+
         impl $name {
-            #[allow(dead_code)]
             pub fn from_str(s: &str) -> Option<Self> {
                 let ints: Vec<_> = {
                     let mut acc = Self::zero();
@@ -50,7 +66,6 @@ macro_rules! field_impl {
             }
 
             /// Converts a U256 to an Fp so long as it's below the modulus.
-            #[allow(dead_code)]
             pub fn new(mut a: U256) -> Option<Self> {
                 if a < U256($modulus) {
                     a.mul(&U256($rsquared), &U256($modulus), $inv);
@@ -61,13 +76,11 @@ macro_rules! field_impl {
                 }
             }
 
-            #[allow(dead_code)]
             pub fn interpret(buf: &[u8; 64]) -> Self {
                 $name::new(U512::interpret(buf).divrem(&U256($modulus)).1).unwrap()
             }
 
             /// Returns the modulus
-            #[allow(dead_code)]
             #[inline]
             pub fn modulus() -> U256 {
                 U256($modulus)
