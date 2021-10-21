@@ -1,3 +1,4 @@
+extern crate borsh;
 extern crate byteorder;
 extern crate rand;
 

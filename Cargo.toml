@@ -11,4 +11,5 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 rand = "0.8"
+borsh = "0.9.1"
 byteorder = { version = "1", default-features = false }

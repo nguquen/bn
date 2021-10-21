@@ -1,5 +1,6 @@
+use borsh::{BorshDeserialize, BorshSerialize};
 use rand::Rng;
-use std::cmp::Ordering;
+use std::{cmp::Ordering, io::Read};
 
 use byteorder::{BigEndian, ByteOrder};
 
@@ -92,6 +93,65 @@ impl U512 {
         }
 
         U512(n)
+    }
+}
+
+impl BorshSerialize for U512 {
+    fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
+        let mut buf = [0; (8 * 8)];
+
+        for (l, i) in (0..8).rev().zip((0..8).map(|i| i * 8)) {
+            BigEndian::write_u64(&mut buf[i..], self.0[l]);
+        }
+
+        writer.write(&buf)?;
+        writer.flush()?;
+
+        Ok(())
+    }
+}
+
+impl BorshDeserialize for U512 {
+    fn deserialize(buf: &mut &[u8]) -> std::io::Result<Self> {
+        let mut b = [0u8; (8 * 8)];
+        buf.read_exact(&mut b).unwrap();
+
+        Ok(U512::interpret(&b))
+    }
+}
+
+impl BorshSerialize for U256 {
+    fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
+        let mut buf = [0; (4 * 8)];
+
+        for (l, i) in (0..4).rev().zip((0..4).map(|i| i * 8)) {
+            BigEndian::write_u64(&mut buf[i..], self.0[l]);
+        }
+
+        writer.write(&buf)?;
+        writer.flush()?;
+
+        Ok(())
+    }
+}
+
+impl BorshDeserialize for U256 {
+    fn deserialize(buf: &mut &[u8]) -> std::io::Result<Self> {
+        let mut b = [0u8; (4 * 8)];
+        buf.read_exact(&mut b).unwrap();
+
+        Ok(U256::interpret(&b))
+    }
+}
+
+impl U256 {
+    pub fn interpret(buf: &[u8; 32]) -> U256 {
+        let mut n = [0; 4];
+        for (l, i) in (0..4).rev().zip((0..4).map(|i| i * 8)) {
+            n[l] = BigEndian::read_u64(&buf[i..]);
+        }
+
+        U256(n)
     }
 }
 
